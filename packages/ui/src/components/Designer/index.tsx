@@ -13,7 +13,7 @@ import {
 } from '@pdfme/common';
 import { DndContext } from '@dnd-kit/core';
 import RightSidebar from './RightSidebar/index';
-import LeftSidebar from './LeftSidebar';
+import LeftSidebarV2 from './LeftSidebarV2';
 import Canvas from './Canvas/index';
 import { RULER_HEIGHT, RIGHT_SIDEBAR_WIDTH, LEFT_SIDEBAR_WIDTH } from '../../constants';
 import { I18nContext, OptionsContext, PluginsRegistry } from '../../contexts';
@@ -29,6 +29,7 @@ import { useUIPreProcessor, useScrollPageCursor, useInitEvents } from '../../hoo
 import Root from '../Root';
 import ErrorScreen from '../ErrorScreen';
 import CtlBar from '../CtlBar';
+import LeftSidebar from './LeftSidebar';
 
 /**
  * When the canvas scales there is a displacement of the starting position of the dragged schema.
@@ -165,7 +166,7 @@ const TemplateEditor = ({
     const newSchemaName = (prefix: string) => {
       let index = schemasList.reduce((acc, page) => acc + page.length, 1);
       let newName = prefix + index;
-      while (schemasList.some(page => page.find((s) => s.name === newName))) {
+      while (schemasList.some(page => page.find((s: SchemaForUI) => s.name === newName))) {
         index++;
         newName = prefix + index;
       }
@@ -175,6 +176,7 @@ const TemplateEditor = ({
 
     const s = {
       id: uuid(),
+      key: uuid(),
       ...defaultSchema,
       name: newSchemaName(i18n('field')),
       position: {
@@ -248,6 +250,7 @@ const TemplateEditor = ({
     ? { addPageAfter: handleAddPageAfter, removePage: handleRemovePage }
     : {};
 
+  console.log("options", JSON.stringify(options));
   return (
     <Root size={size} scale={scale}>
       <DndContext
@@ -272,27 +275,54 @@ const TemplateEditor = ({
         }}
         onDragStart={onEditEnd}
       >
-        <LeftSidebar
+        <CtlBar
+          size={sizeExcSidebars}
+          pageCursor={pageCursor}
+          pageNum={schemasList.length}
+          setPageCursor={(p) => {
+            if (!canvasRef.current) return;
+            canvasRef.current.scrollTop = getPagesScrollTopByIndex(pageSizes, p, scale);
+            setPageCursor(p);
+            onEditEnd();
+          }}
+          zoomLevel={zoomLevel}
+          setZoomLevel={setZoomLevel}
+          {...pageManipulation}
+        />
+
+        { options?.pluginsMapping !== undefined
+          ?<LeftSidebarV2
+            height={canvasRef.current ? canvasRef.current.clientHeight : 0}
+            scale={scale}
+            basePdf={template.basePdf}
+            menuEntriesStr={options.pluginsMapping as string}
+          />
+          :<LeftSidebar
           height={canvasRef.current ? canvasRef.current.clientHeight : 0}
           scale={scale}
           basePdf={template.basePdf}
         />
-
-        <div style={{ position: 'absolute', width: canvasWidth, marginLeft: LEFT_SIDEBAR_WIDTH }}>
-          <CtlBar
-            size={sizeExcSidebars}
-            pageCursor={pageCursor}
-            pageNum={schemasList.length}
-            setPageCursor={(p) => {
-              if (!canvasRef.current) return;
-              canvasRef.current.scrollTop = getPagesScrollTopByIndex(pageSizes, p, scale);
-              setPageCursor(p);
-              onEditEnd();
-            }}
-            zoomLevel={zoomLevel}
-            setZoomLevel={setZoomLevel}
-            {...pageManipulation}
-          />
+        } 
+        <RightSidebar
+          hoveringSchemaId={hoveringSchemaId}
+          onChangeHoveringSchemaId={onChangeHoveringSchemaId}
+          height={canvasRef.current ? canvasRef.current.clientHeight : 0}
+          size={size}
+          pageSize={pageSizes[pageCursor] ?? []}
+          activeElements={activeElements}
+          schemasList={schemasList}
+          schemas={schemasList[pageCursor] ?? []}
+          changeSchemas={changeSchemas}
+          onSortEnd={onSortEnd}
+          onEdit={id => {
+            const editingElem = document.getElementById(id);
+            editingElem && onEdit([editingElem]);
+          }}
+          onEditEnd={onEditEnd}
+          deselectSchema={onEditEnd}
+          sidebarOpen={sidebarOpen}
+          setSidebarOpen={setSidebarOpen}
+        />
 
           <RightSidebar
             hoveringSchemaId={hoveringSchemaId}
@@ -334,10 +364,11 @@ const TemplateEditor = ({
             sidebarOpen={sidebarOpen}
             onEdit={onEdit}
           />
-        </div>
-      </DndContext>
-    </Root>
-  );
-};
-
+        </DndContext>
+      </Root>
+    );
+  };
+  
 export default TemplateEditor;
+
+

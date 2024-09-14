@@ -436,7 +436,7 @@ const getInvoiceTemplate = (): Template => ({
         width: 170,
         height: 45.75920000000001,
         content:
-          '[["Eggshell Camisole Top","1","123","123"],["Cuban Collar Shirt","2","127","254"]]',
+          '[["https://cdn.shopify.com/s/files/1/0569/8574/7492/files/air-jordan-2-2.jpg?v=1708168438@@@Eggshell Camisole Topas","1","$123","$123"],["https://cdn.shopify.com/s/files/1/0569/8574/7492/files/air-jordan-2-2.jpg?v=1708168438@@@Eggshell Camisole Topas","2","$127","$254"]]',
         showHead: true,
         head: ['Item', 'Quantity', 'Unit Price', 'Total'],
         headWidthPercentages: [

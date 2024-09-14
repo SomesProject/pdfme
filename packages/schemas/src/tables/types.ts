@@ -17,6 +17,7 @@ export interface CellStyle {
   borderColor: string;
   borderWidth: BoxDimensions;
   padding: BoxDimensions;
+  imageUrl?: string;
 }
 
 export type CellSchema = Schema & CellStyle;
