@@ -12,6 +12,7 @@ import line from '../shapes/line.js';
 import { rectangle } from '../shapes/rectAndEllipse.js';
 import type { CellSchema } from './types';
 import { getCellPropPanelSchema, getDefaultCellStyles } from './helper.js';
+
 const linePdfRender = line.pdf;
 const rectanglePdfRender = rectangle.pdf;
 
@@ -41,6 +42,24 @@ const createTextDiv = (schema: CellSchema) => {
   textDiv.style.left = `${bw.left + pd.left}mm`;
   return textDiv;
 };
+
+const createImageDiv = (schema: CellSchema) => {
+  const imageDiv = document.createElement('div');
+  imageDiv.style.zIndex = '1';
+  imageDiv.style.width = '40%';
+  imageDiv.style.height = '90%';
+  imageDiv.style.position = 'absolute'; // Ensure it is positioned relative to its nearest positioned ancestor
+  imageDiv.style.top = '0';            // Position the div at the top
+  imageDiv.style.left = '0';           // Position the div to the left side
+  imageDiv.style.margin = '0';         // No extra margin
+  imageDiv.style.padding = '5px';        // No extra padding
+  imageDiv.style.borderRadius = '0px';
+  imageDiv.style.boxSizing = 'border-box'; // Include padding and border in the element's total width and height
+  imageDiv.style.display = 'flex';
+  imageDiv.style.justifyContent = 'flex-start'; // Align children horizontally to the left
+  imageDiv.style.alignItems = 'center'; 
+  return imageDiv;
+}
 
 const createLineDiv = (
   width: string,
@@ -167,22 +186,61 @@ const cellSchema: Plugin<CellSchema> = {
           x: position.x + borderWidth.left + padding.left + staticXOffset,
           y: position.y + borderWidth.top + padding.top,
         },
-        width: width - borderWidth.left - borderWidth.right - padding.left - padding.right,
+        width: width - borderWidth.left - borderWidth.right - padding.left - padding.right - staticXOffset,
         height: height - borderWidth.top - borderWidth.bottom - padding.top - padding.bottom,
       },
     });
   },
   ui: async (arg: UIRenderProps<CellSchema>) => {
     const { schema, rootElement } = arg;
-    const { borderWidth, width, height, borderColor, backgroundColor } = schema;
+    const { borderWidth, width, height, borderColor, backgroundColor, padding } = schema;
     rootElement.style.backgroundColor = backgroundColor;
-
     const textDiv = createTextDiv(schema);
+
+    let imageUrl = undefined;
+    let imageDiv = undefined;
+    if (arg?.value && arg?.value.includes(delimiter)) {
+      const parts = arg?.value.split(delimiter);
+      if (parts?.length === 2) { 
+        imageUrl = parts[0];
+        arg.value = parts[1];
+      }
+    }
+
+    if (imageUrl) {
+      let dataUrl = await getImageAsDataURL(imageUrl); 
+      if (!dataUrl || typeof dataUrl !== 'string') {
+        dataUrl = imageFallback;
+      }
+
+      textDiv.style.left = `${borderWidth.left + padding.left + width * 0.3}mm`;
+
+      imageDiv = createImageDiv(schema);
+      await imageSchema.ui({
+        ...arg,
+        value: dataUrl as string,
+        schema: {
+          ...schema,
+          type: 'image',
+          imageUrl,
+          readOnly: true,
+        },
+
+        rootElement: imageDiv,
+      });
+    }
+
     await textUiRender({
       ...arg,
-      schema: { ...schema, backgroundColor: '' },
+      schema: {
+        ...schema,
+        type: 'text',
+      },
       rootElement: textDiv,
     });
+    if (imageDiv) {
+      rootElement.appendChild(imageDiv);
+    } 
     rootElement.appendChild(textDiv);
 
     const lines = [
