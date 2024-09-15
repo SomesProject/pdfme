@@ -84,17 +84,34 @@ const createLineDiv = (
 
 async function getImageAsDataURL(imageUrl: string) {
   try {
-    // Fetch the image as a Blob
-    const response = await fetch(imageUrl);
-    const blob = await response.blob();
+    if (typeof window !== 'undefined') {
+      // Fetch the image as a Blob
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
 
-    // Convert the Blob to a Data URL
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result); // This will be the data URL
-      reader.onerror = reject;
-      reader.readAsDataURL(blob);
-    });
+      // Convert the Blob to a Data URL
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result); // This will be the data URL
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    } else {
+      // Node.js environment
+      const nodeFetch = await import('node-fetch');
+      const response = await nodeFetch.default(imageUrl);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const arrayBuffer = await response.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      const mimeType = response.headers.get('content-type');
+      if (!mimeType) {
+        throw new Error('Unable to determine MIME type');
+      }
+      const base64String = buffer.toString('base64');
+      return `data:${mimeType};base64,${base64String}`;
+    }
   } catch (error) {
     console.error('Error fetching the image:', error);
     return null;
@@ -166,11 +183,11 @@ const cellSchema: Plugin<CellSchema> = {
           ...schema,
           type: 'image',
           position: {
-            x: -1,
+            x: position.x,
             y: position.y + borderWidth.top + padding.top,
           },
-          width: width - borderWidth.left - borderWidth.right - padding.left - padding.right,
-          height: height - borderWidth.top - borderWidth.bottom - padding.top - padding.bottom,
+          width: width * 0.4,
+          height: height * 0.8,
           imageUrl,
         },
       });
