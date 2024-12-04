@@ -21,6 +21,7 @@ const barcodeDefaults: { defaultSchema: BarcodeSchema }[] = [
   {
     defaultSchema: {
       name: '',
+      required: false,
       type: 'qrcode',
       content: 'https://pdfme.com/',
       position,
@@ -34,6 +35,7 @@ const barcodeDefaults: { defaultSchema: BarcodeSchema }[] = [
   {
     defaultSchema: {
       name: '',
+      required: false,
       type: 'japanpost',
       content: '6540123789-A-K-Z',
       position,
@@ -49,6 +51,7 @@ const barcodeDefaults: { defaultSchema: BarcodeSchema }[] = [
   {
     defaultSchema: {
       name: '',
+      required: false,
       type: 'ean13',
       content: '2112345678900',
       position,
@@ -64,6 +67,7 @@ const barcodeDefaults: { defaultSchema: BarcodeSchema }[] = [
   {
     defaultSchema: {
       name: '',
+      required: false,
       type: 'ean8',
       content: '02345673',
       position,
@@ -78,6 +82,7 @@ const barcodeDefaults: { defaultSchema: BarcodeSchema }[] = [
   {
     defaultSchema: {
       name: '',
+      required: false,
       type: 'code39',
       content: 'THIS IS CODE 39',
       position,
@@ -91,6 +96,7 @@ const barcodeDefaults: { defaultSchema: BarcodeSchema }[] = [
   {
     defaultSchema: {
       name: '',
+      required: false,
       type: 'code128',
       content: 'This is Code 128!',
       position,
@@ -106,6 +112,7 @@ const barcodeDefaults: { defaultSchema: BarcodeSchema }[] = [
     defaultSchema: {
       name: '',
       type: 'nw7',
+      required: false,
       content: 'A0123456789B',
       position,
       ...defaultColors,
@@ -120,6 +127,7 @@ const barcodeDefaults: { defaultSchema: BarcodeSchema }[] = [
     defaultSchema: {
       name: '',
       type: 'itf14',
+      required: false,
       content: '04601234567893',
       position,
       ...defaultColors,
@@ -135,6 +143,7 @@ const barcodeDefaults: { defaultSchema: BarcodeSchema }[] = [
     defaultSchema: {
       name: '',
       type: 'upca',
+      required: false,
       content: '416000336108',
       position,
       ...defaultColors,
@@ -150,6 +159,7 @@ const barcodeDefaults: { defaultSchema: BarcodeSchema }[] = [
     defaultSchema: {
       name: '',
       type: 'upce',
+      required: false,
       content: '00123457',
       position,
       ...defaultColors,
@@ -163,6 +173,7 @@ const barcodeDefaults: { defaultSchema: BarcodeSchema }[] = [
   {
     defaultSchema: {
       name: '',
+      required: false,
       type: 'gs1datamatrix',
       content: '(01)03453120000011(17)191125(10)ABCD1234',
       position,

@@ -152,6 +152,7 @@ export const propPanel: PropPanel<TextSchema> = {
   defaultSchema: {
     name: '',
     type: 'text',
+    required: false,
     content: 'Type Something...',
     position: { x: 0, y: 0 },
     width: 45,

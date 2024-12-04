@@ -189,6 +189,7 @@ const imageSchema: Plugin<ImageSchema> = {
     schema: {},
     defaultSchema: {
       name: '',
+      required: false,
       type: 'image',
       content: defaultValue,
       position: { x: 0, y: 0 },

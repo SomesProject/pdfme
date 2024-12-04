@@ -97,6 +97,7 @@ export const propPanel: PropPanel<MultiVariableTextSchema> = {
   defaultSchema: {
     ...parentPropPanel.defaultSchema,
     readOnly: false,
+    required: false,
     type: 'multiVariableText',
     text: 'Add text here using {} for variables ',
     width: 50,
