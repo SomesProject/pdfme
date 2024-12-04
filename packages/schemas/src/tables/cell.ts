@@ -31,6 +31,22 @@ const renderLine = async (
     schema: { ...schema, type: 'line', position, width, height, color: schema.borderColor },
   });
 
+function getImageDimensions(base64: any): Promise<{ width: number; height: number }> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+
+    img.onload = () => {
+      resolve({ width: img.width, height: img.height });
+    };
+
+    img.onerror = (error) => {
+      reject(new Error("Failed to load the image."));
+    };
+
+    img.src = base64;
+  });
+}
+
 const createTextDiv = (schema: CellSchema) => {
   const { borderWidth: bw, width, height, padding: pd } = schema;
   const textDiv = document.createElement('div');
@@ -83,6 +99,10 @@ const createLineDiv = (
 };
 
 async function getImageAsDataURL(imageUrl: string) {
+  if (!imageUrl || imageUrl === 'undefined') {
+    return imageFallback;
+  }
+
   try {
     if (typeof window !== 'undefined') {
       // Fetch the image as a Blob
@@ -122,6 +142,57 @@ const cellSchema: Plugin<CellSchema> = {
   pdf: async (arg: PDFRenderProps<CellSchema>) => {
     const { schema } = arg;
     const { position, width, height, borderWidth, padding } = schema;
+    let imagewidth = 0;
+    let imageHeight = 0;
+    let imageUrl = undefined;
+
+    if (arg?.value && arg?.value.includes(delimiter)) {
+      const parts = arg?.value.split(delimiter);
+      if (parts?.length === 2) { 
+        imageUrl = parts[0];
+        arg.value = parts[1];
+      }
+    }
+
+    if (imageUrl) {
+      let dataUrl = await getImageAsDataURL(imageUrl); 
+      if (!dataUrl || typeof dataUrl !== 'string') {
+        dataUrl = imageFallback;
+      }
+      
+      imagewidth = width * 0.3;
+      imageHeight = height * 0.8;
+      await imageSchema.pdf({
+        ...arg,
+        value: dataUrl as string,
+        schema: {
+          ...schema,
+          type: 'image',
+          position: {
+            x: position.x,
+            y: position.y + borderWidth.top + padding.top,
+          },
+          width: imagewidth,
+          height: imageHeight,
+          imageUrl,
+        },
+      });
+    }
+
+    await textPdfRender({
+      ...arg,
+      schema: {
+        ...schema,
+        type: 'text',
+        backgroundColor: '',
+        position: {
+          x: position.x + borderWidth.left + padding.left + imagewidth,
+          y: position.y + borderWidth.top + padding.top,
+        },
+        width: width - borderWidth.left - borderWidth.right - padding.left - padding.right,
+        height: height - borderWidth.top - borderWidth.bottom - padding.top - padding.bottom,
+      },
+    });
 
     await Promise.all([
       // BACKGROUND
@@ -158,55 +229,6 @@ const cellSchema: Plugin<CellSchema> = {
       // LEFT
       renderLine(arg, schema, { x: position.x, y: position.y }, borderWidth.left, height),
     ]);
-
-    let imageUrl = undefined;
-
-    if (arg?.value && arg?.value.includes(delimiter)) {
-      const parts = arg?.value.split(delimiter);
-      if (parts?.length === 2) { 
-        imageUrl = parts[0];
-        arg.value = parts[1];
-      }
-    }
-
-    let staticXOffset = 0;
-    if (imageUrl) {
-      let dataUrl = await getImageAsDataURL(imageUrl); 
-      if (!dataUrl || typeof dataUrl !== 'string') {
-        dataUrl = imageFallback;
-      }
-      staticXOffset = 22;
-      await imageSchema.pdf({
-        ...arg,
-        value: dataUrl as string,
-        schema: {
-          ...schema,
-          type: 'image',
-          position: {
-            x: position.x,
-            y: position.y + borderWidth.top + padding.top,
-          },
-          width: width * 0.4,
-          height: height * 0.8,
-          imageUrl,
-        },
-      });
-    }
-
-    await textPdfRender({
-      ...arg,
-      schema: {
-        ...schema,
-        type: 'text',
-        backgroundColor: '',
-        position: {
-          x: position.x + borderWidth.left + padding.left + staticXOffset,
-          y: position.y + borderWidth.top + padding.top,
-        },
-        width: width - borderWidth.left - borderWidth.right - padding.left - padding.right - staticXOffset,
-        height: height - borderWidth.top - borderWidth.bottom - padding.top - padding.bottom,
-      },
-    });
   },
   ui: async (arg: UIRenderProps<CellSchema>) => {
     const { schema, rootElement } = arg;
