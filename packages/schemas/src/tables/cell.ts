@@ -98,8 +98,10 @@ const createLineDiv = (
   return div;
 };
 
+const undefinedPlaceholder = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+
 async function getImageAsDataURL(imageUrl: string) {
-  if (!imageUrl || imageUrl === 'undefined') {
+  if (!imageUrl || imageUrl === 'undefined' || imageUrl === undefinedPlaceholder) {
     return imageFallback;
   }
 
@@ -141,6 +143,7 @@ async function getImageAsDataURL(imageUrl: string) {
 const cellSchema: Plugin<CellSchema> = {
   pdf: async (arg: PDFRenderProps<CellSchema>) => {
     const { schema } = arg;
+
     const { position, width, height, borderWidth, padding } = schema;
     let imagewidth = 0;
     let imageHeight = 0;
@@ -153,6 +156,42 @@ const cellSchema: Plugin<CellSchema> = {
         arg.value = parts[1];
       }
     }
+
+    await Promise.all([
+      // BACKGROUND
+      rectanglePdfRender({
+        ...arg,
+        schema: {
+          ...schema,
+          type: 'rectangle',
+          width: schema.width,
+          height: schema.height,
+          borderWidth: 0,
+          borderColor: '',
+          color: schema.backgroundColor,
+        },
+      }),
+      // TOP
+      renderLine(arg, schema, { x: position.x, y: position.y }, width, borderWidth.top),
+      // RIGHT
+      renderLine(
+        arg,
+        schema,
+        { x: position.x + width - borderWidth.right, y: position.y },
+        borderWidth.right,
+        height
+      ),
+      // BOTTOM
+      renderLine(
+        arg,
+        schema,
+        { x: position.x, y: position.y + height - borderWidth.bottom },
+        width,
+        borderWidth.bottom
+      ),
+      // LEFT
+      renderLine(arg, schema, { x: position.x, y: position.y }, borderWidth.left, height),
+    ]);
 
     if (imageUrl) {
       let dataUrl = await getImageAsDataURL(imageUrl); 
@@ -194,41 +233,6 @@ const cellSchema: Plugin<CellSchema> = {
       },
     });
 
-    await Promise.all([
-      // BACKGROUND
-      rectanglePdfRender({
-        ...arg,
-        schema: {
-          ...schema,
-          type: 'rectangle',
-          width: schema.width,
-          height: schema.height,
-          borderWidth: 0,
-          borderColor: '',
-          color: schema.backgroundColor,
-        },
-      }),
-      // TOP
-      renderLine(arg, schema, { x: position.x, y: position.y }, width, borderWidth.top),
-      // RIGHT
-      renderLine(
-        arg,
-        schema,
-        { x: position.x + width - borderWidth.right, y: position.y },
-        borderWidth.right,
-        height
-      ),
-      // BOTTOM
-      renderLine(
-        arg,
-        schema,
-        { x: position.x, y: position.y + height - borderWidth.bottom },
-        width,
-        borderWidth.bottom
-      ),
-      // LEFT
-      renderLine(arg, schema, { x: position.x, y: position.y }, borderWidth.left, height),
-    ]);
   },
   ui: async (arg: UIRenderProps<CellSchema>) => {
     const { schema, rootElement } = arg;

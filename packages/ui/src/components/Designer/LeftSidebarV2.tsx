@@ -70,8 +70,7 @@ const LeftSidebarV2 = ({ height, scale, basePdf, menuEntriesStr }: { height: num
       document.removeEventListener('mouseup', handleMouseUp);
     };
   }, [isDragging]);
-  console.log("Menu entries", menuEntries);
-  console.log("Plugins registry", pluginsRegistry);
+
   return (
     <div
       style={{

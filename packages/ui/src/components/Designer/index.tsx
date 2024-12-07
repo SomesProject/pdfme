@@ -250,7 +250,6 @@ const TemplateEditor = ({
     ? { addPageAfter: handleAddPageAfter, removePage: handleRemovePage }
     : {};
 
-  console.log("options", JSON.stringify(options));
   return (
     <Root size={size} scale={scale}>
       <DndContext

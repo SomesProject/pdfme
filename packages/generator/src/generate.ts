@@ -42,8 +42,9 @@ const generate = async (props: GenerateProps) => {
       _cache,
       getDynamicHeights: (value, args) => {
         switch (args.schema.type) {
-          case 'table':
+          case 'table': {
             return getDynamicHeightsForTable(value, args);
+          }
           default:
             return Promise.resolve([args.schema.height]);
         }
