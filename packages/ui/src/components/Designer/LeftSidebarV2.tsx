@@ -100,9 +100,9 @@ const LeftSidebarV2 = ({ height, scale, basePdf, menuEntriesStr }: { height: num
             <Button
               key={option}
               onClick={() => setMenuOption(option)}
-              icon={menuEntries[option]?.icon ? <span dangerouslySetInnerHTML={{ __html: menuEntries[option].icon }} /> : null}
               style={{
-              display: 'block',
+              display: 'flex',
+              alignItems: 'center',
               margin: '10px 0',
               color: menuOption === option ? '#fff' : '#333', // Change text color when selected
               background: menuOption === option ? token.colorPrimary : '#f2f2f2', // Change background color when selected
@@ -111,9 +111,15 @@ const LeftSidebarV2 = ({ height, scale, basePdf, menuEntriesStr }: { height: num
               cursor: 'pointer',
               height: '70px',
               width: '100%', // Adjust width to fit within the column
-              textAlign: 'left', // Align text to the left
+              textAlign: 'left', // Align text to the left,
+              paddingBottom: '5px',
               }}
             >
+              {menuEntries[option]?.icon && (
+              <span
+                dangerouslySetInnerHTML={{ __html: menuEntries[option].icon }}
+              />
+              )}
               {option}
             </Button>
         ))}
